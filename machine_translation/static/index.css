@@ -1,0 +1,143 @@
+/*
+ *
+ *   Organisation: Broad AI Lab, University of Auckland
+ *   Author: Ziqi Wang
+ *   Date: 2021-05-11
+ *
+ */
+
+* {
+    font-family: 'Raleway', sans-serif;
+}
+
+.bk-primary-blue {
+    background: #00467f;
+    color: white;
+}
+
+.full-width {
+    max-width: 100%;
+}
+
+.font-500 {
+    font-weight: 500;
+}
+
+.alert.copied {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 1rem;
+}
+
+.input-type-btn {
+    min-width: 120px;
+}
+
+.model-selection-container {
+    padding-left: 0;
+}
+
+.translation-container {
+    border: solid 1px #ddd;
+    border-radius: 5px;
+    box-shadow: 1px 1px 4px #ddd;
+}
+
+.translation-section-container {
+    padding: 0;
+}
+
+.input-container {
+    padding: 0;
+    border-top: solid 1px #ddd;
+}
+
+.input-container textarea {
+    border: none;
+    overflow: auto;
+    outline: none;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none!important;
+
+    resize: none; /*remove the resize handle on the bottom right*/
+
+    font-size: 1.2rem;
+}
+
+.input-container.last {
+    border-left: solid 1px #ddd;
+    background-color: #e9ecef;
+}
+
+.input-area {
+    padding: 1.5em;
+}
+
+.language-btn-group .btn {
+    height: 55px;
+    min-width: 120px;
+    box-shadow: none;
+    border-radius: 0;
+    background-color: #fff;
+    color: #999;
+}
+
+.btn-container {
+    position: relative;
+    display: inline-block;
+    height: 100%;
+}
+
+.btn-container .btn:hover {
+    background-color: #eee;
+    color: #777
+}
+
+.btn-container.active span {
+    position: absolute;
+    bottom: 0;
+    height: 3px;
+    left: 0;
+    background-color: blue;
+    width: 100%;
+}
+
+.btn-container.active .btn {
+    color: blue;
+}
+
+.control-area button {
+    float: right;
+    box-shadow: none!important;
+    position: relative;
+}
+
+.control-area button svg {
+    fill: #bbb;
+}
+
+.control-area button svg:hover {
+    fill: #666;
+    transition: fill 0.3s ease-in-out;
+}
+
+.control-area button .info-tag {
+    position: absolute;
+    background-color: #555;
+    border-radius: 5px;
+    color: white;
+    padding: 3px 6px;
+    min-width: 135px;
+    bottom: -15px;
+    left: 0px;
+    font-size: 0.9em;
+    opacity: 0;
+}
+
+.control-area button:hover .info-tag {
+    opacity: 1;
+    transition-delay: 0.3s;
+}
