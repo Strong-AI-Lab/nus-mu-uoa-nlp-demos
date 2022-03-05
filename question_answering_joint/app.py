@@ -6,59 +6,27 @@
 #
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-from sys import path
-path.append("../")
-path.reverse()
+# from sys import path
+# path.append("../")
+# path.reverse()
 
-import json
 import os
 import sys
 import time
-# sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
+import json
 
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 from nltk import tokenize
 
+from model import QAProxy
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode='threading')
 
-def paras_to_sentences(context):
-    paras = [p for p in context.split('\n') if len(p.strip()) > 0]
-    sentences = []
-    para_index = 0
-    for p in paras:
-        # sentences.append(['para_' + str(para_index), tokenize.sent_tokenize(p)])
-        sentences.append([p.split('\t')[0].strip(), tokenize.sent_tokenize(p.split('\t')[1].strip())])
-        para_index += 1
-
-    return sentences
-
-def construct_model_data(question_id, question, context):
-    model_data = {}
-    model_data['_id'] = question_id
-    model_data['question'] = question
-    model_data['context'] = paras_to_sentences(context)
-
-    return model_data
-
-def extract_answer_from_model_output(model_data_json, raw_output, question_id):
-    answer = raw_output['answer'][question_id]
-    supports_raw = raw_output['sp'][question_id]
-    supports = []
-    result = {}
-
-    # TODO: can be optimised
-    for support_para in supports_raw:
-        for para in model_data_json['context']:
-            if support_para[0] == para[0]:
-                supports.append(para[1][support_para[1]])
-                break
-
-    result['answer'] = answer
-    result['supports'] = supports
-    return result
+# qa proxy
+qa_proxy = QAProxy()
 
 def int_with_default(input, default=0):
     try:
@@ -91,44 +59,35 @@ def predict_request(request):
     total_step = 4
 
     try:
-        status = '0/4 - Converting data for prediction model...'
-        emit('update_status',
-             {'status': status, 'cur_step': 0, 'total_step': total_step + 1, 'completed': completed, 'result': result})
+        status = '0/3 - Converting data for prediction model...'
+        emit('update_status', {'status': status, 'cur_step': 0, 'total_step': total_step, 'completed': completed, 'result': result})
         
         time.sleep(1)
 
-        status = '1/4 - Extracting entities...'
-        emit('update_status',
-             {'status': status, 'cur_step': 1, 'total_step': total_step + 1, 'completed': completed, 'result': result})
+        status = '1/3 - Document retrieval...'
+        emit('update_status', {'status': status, 'cur_step': 1, 'total_step': total_step, 'completed': completed, 'result': result})
 
         time.sleep(1)
+        result["document_retrieval"] = qa_proxy.document_retrieval("en", question)
 
-        status = '2/4 - Selecting related paragraphs...'
-        emit('update_status',
-             {'status': status, 'cur_step': 2, 'total_step': total_step + 1, 'completed': completed, 'result': result})
+        status = '2/3 - Passage retrieval...'
+        emit('update_status', {'status': status, 'cur_step': 2, 'total_step': total_step, 'completed': completed, 'result': result})
 
         time.sleep(1)
+        result["passage_retrieval"] = qa_proxy.passage_retrieval("en", context, question)
 
-        status = '3/4 - Creating objects...'
-        emit('update_status',
-             {'status': status, 'cur_step': 3, 'total_step': total_step + 1, 'completed': completed, 'result': result})
+        status = '3/3 - Question Answering...'
+        emit('update_status', {'status': status, 'cur_step': 3, 'total_step': total_step, 'completed': completed, 'result': result})
         
-        time.sleep(1)
-
-        status = '4/4- Predicting result...'
-        emit('update_status',
-             {'status': status, 'cur_step': 4, 'total_step': total_step + 1, 'completed': completed, 'result': result})
-        
-        time.sleep(1)
+        time.sleep(2)
+        result["answer"] = qa_proxy.question_answering("en", context, question)
 
         completed = 1
         status = 'Done!'
-        emit('update_status',
-             {'status': status, 'cur_step': 5, 'total_step': total_step + 1, 'completed': completed, 'result': result})
+        emit('update_status', {'status': status, 'cur_step': 4, 'total_step': total_step, 'completed': completed, 'result': result})
     except:
         status = 'Error occurred!'
-        emit('update_status',
-             {'status': status, 'cur_step': -1, 'total_step': total_step + 1, 'completed': 1, 'result': result})
+        emit('update_status', {'status': status, 'cur_step': -1, 'total_step': total_step, 'completed': 1, 'result': result})
 
 @app.route('/submit', methods=['POST'])
 def submit():

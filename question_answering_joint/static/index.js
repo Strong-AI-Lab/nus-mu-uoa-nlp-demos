@@ -95,8 +95,22 @@
 
         // register socket event
         window.socket.on('update_status', function(response) {
+            console.log(response);
+
             updateProgressBarTo((response.cur_step / response.total_step * 100).toFixed(4))
             setPredictionProgressBarDescription('Prediction in progress ... [' + response.status + ']');
+
+            if (response.cur_step === 0) {
+                // console.log('current step: ' + response.cur_step);
+            } else if (response.cur_step == 1) {
+                // console.log('current step: ' + response.cur_step);
+            } else if (response.cur_step == 2) {
+                // console.log('current step: ' + response.cur_step);
+            } else if (response.cur_step == 3) {
+                // console.log('current step: ' + response.cur_step);
+            } else if (response.cur_step == 4) {
+                // console.log('current step: ' + response.cur_step);
+            }
 
             if (response.completed == 1) {
                 let endTime = Date.now();
@@ -110,10 +124,12 @@
                     progressBarStatus = 'SUCCESS';
                     result = { answer: response.result['answer'], supports: response.result['supports'] };
                 }
+
                 renderResult(result);
                 updateProgressBarTo(100);
                 predictionProgressAnimationStop(progressBarStatus);
                 setPredictionProgressBarDescription(progressBarMsg);
+                turnOffTab(false);
                 window.socket.disconnect();
             }
         });
@@ -137,6 +153,7 @@
         $('#example-question').removeClass('d-none');
         $('#context-textarea').attr('readonly','readonly');
         updateExampleContext();
+        setPredictionProgressBarDescription("Ready to go");
     }
 
     function toggleMyInput() {
@@ -149,6 +166,8 @@
         $('#context-textarea').removeAttr('readonly');
         $('#context-textarea').val('');
         $('#context-textarea').attr('placeholder', "Please paste your document here...");
+        renderResult({ answer: "Click 'Predict' button to generate answer.", supports: [] });
+        setPredictionProgressBarDescription("Ready to go");
     }
 
     function toggleExampleInput() {
@@ -159,6 +178,7 @@
         $('#example-question').removeClass('d-none');
         $('#context-textarea').removeAttr('readonly');
         updateExampleContext();
+        setPredictionProgressBarDescription("Ready to go");
     }
 
     function getInputType() {
@@ -254,14 +274,41 @@
     }
 
     function updateProgressBarTo(value) {
-        $('#prediction-progress-bar').attr('aria-valuenow', value).css('width', value + '%')
+        $('#prediction-progress-bar').attr('aria-valuenow', value).css('width', value + '%');
+    }
+
+    function turnOffTab(value) {
+        $('#my-input-btn').prop('disabled', value);
+        $('#example-btn').prop('disabled', value);
+        $('#precomputed-btn').prop('disabled', value);
+    }
+
+    function dataVerfiy(value) {
+        let context = $('#context-textarea').val();
+        let question = $('#my-question-input').val();
+
+        if (context == "" || question == "") {
+            return false;
+        }
+
+        return true;
     }
 
     function predictAnswer() {
         // clean up previous prediction ??
         window.startTime = Date.now();
+        
+        // frontend data verification
+        turnOffTab(true);
+        if (!dataVerfiy()) {
+            setPredictionProgressBarDescription('Question and Document can\'t be empty!');
+            predictionProgressAnimationStop('ERROR');
+            turnOffTab(false);
+            return;
+        }
+
         predictionProgressAnimationStart();
-        setPredictionProgressBarDescription('Prediction in progress ...')
+        setPredictionProgressBarDescription('Prediction in progress ...');
 
         // predict answer
         let inputType = getInputType();
@@ -276,19 +323,16 @@
             let timeTaken = (endTime - window.startTime) / 1000;
             predictionProgressAnimationStop();
             setPredictionProgressBarDescription('Done!  Time taken: ' + timeTaken.toFixed(4) + 's');
+            turnOffTab(false);
         } else if (inputType == 'MY_INPUT' || inputType == 'EXAMPLE') {
-            let selectedId = getSelectedExampleId();
-            let id = 'example';
-            let context = EXAMPLES[selectedId].context;
-            let question = EXAMPLES[selectedId].question;
+            // let selectedId = getSelectedExampleId();
+            // let id = 'example';
+            // let context = EXAMPLES[selectedId].context;
+            // let question = EXAMPLES[selectedId].question;
 
-            if (inputType == 'MY_INPUT') {
-                // get query data and context
-                // let id = window.startTime;
-                id = 'my_input';
-                context = $('#context-textarea').val();
-                question = $('#my-question-input').val();
-            }
+            let id = 'my_input';
+            let context = $('#context-textarea').val();
+            let question = $('#my-question-input').val();
 
             // validate data??
 
@@ -306,6 +350,7 @@
         } else {
             let endTime = Date.now();
             let timeTaken = (endTime - window.startTime) / 1000;
+            turnOffTab(false);
             predictionProgressAnimationStop('ERROR');
             setPredictionProgressBarDescription('Client Error: please refresh page and try again.  Time taken: ' + timeTaken.toFixed(4) + 's');
         }
