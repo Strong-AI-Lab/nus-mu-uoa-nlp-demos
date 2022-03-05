@@ -325,16 +325,9 @@
             setPredictionProgressBarDescription('Done!  Time taken: ' + timeTaken.toFixed(4) + 's');
             turnOffTab(false);
         } else if (inputType == 'MY_INPUT' || inputType == 'EXAMPLE') {
-            // let selectedId = getSelectedExampleId();
-            // let id = 'example';
-            // let context = EXAMPLES[selectedId].context;
-            // let question = EXAMPLES[selectedId].question;
-
             let id = 'my_input';
             let context = $('#context-textarea').val();
             let question = $('#my-question-input').val();
-
-            // validate data??
 
             let data = {
                 "id": id,
