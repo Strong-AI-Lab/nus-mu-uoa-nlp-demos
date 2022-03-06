@@ -421,6 +421,7 @@
         $('#my-input-btn').prop('disabled', value);
         $('#example-btn').prop('disabled', value);
         $('#precomputed-btn').prop('disabled', value);
+        $(".predict-btn").prop('disabled', value);
     }
 
     function dataVerfiy(value) {
@@ -471,11 +472,13 @@
             let id = 'my_input';
             let context = $('#context-textarea').val();
             let question = $('#my-question-input').val();
+            let language = getLanguage();
 
             let data = {
                 "id": id,
                 "question": question,
-                "context": context
+                "context": context,
+                "language": language,
             }
 
             // Socket.IO
