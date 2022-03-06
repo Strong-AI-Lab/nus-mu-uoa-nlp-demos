@@ -8,7 +8,7 @@
 
 (function() {
 
-    const EXAMPLES = [
+    const EN_EXAMPLES = [
         {
             question: "Were Scott Derrickson and Ed Wood of the same nationality?",
             context: "Ed Wood (film) \t Ed Wood is a 1994 American biographical period comedy-drama film directed and produced by Tim Burton, and starring Johnny Depp as cult filmmaker Ed Wood.  The film concerns the period in Wood's life when he made his best-known films as well as his relationship with actor Bela Lugosi, played by Martin Landau.  Sarah Jessica Parker, Patricia Arquette, Jeffrey Jones, Lisa Marie, and Bill Murray are among the supporting cast.\n\n" +
@@ -76,6 +76,69 @@
         }
     ];
 
+    const MR_EXAMPLES = [
+        {
+            question: "mr_fake_question_1",
+            context: "mr_fake_context_1",
+            answer: "yes",
+            supports: ["mr_fake_fact_1", "mr_fake_fact_2"]
+        },
+        {
+            question: "mr_fake_question_2",
+            context: "mr_fake_context_2",
+            answer: "yes",
+            supports: ["mr_fake_fact_3", "mr_fake_fact_4"]
+        },
+        {
+            question: "mr_fake_question_3",
+            context: "mr_fake_context_3",
+            answer: "yes",
+            supports: ["mr_fake_fact_5", "mr_fake_fact_6", "mr_fake_fact_7"]
+        },
+    ];
+
+    const TH_EXAMPLES = [
+        {
+            question: "th_fake_question_1",
+            context: "th_fake_context_1",
+            answer: "yes",
+            supports: ["th_fake_fact_1", "th_fake_fact_2"]
+        },
+        {
+            question: "th_fake_question_2",
+            context: "th_fake_context_2",
+            answer: "yes",
+            supports: ["th_fake_fact_3", "th_fake_fact_4"]
+        },
+        {
+            question: "th_fake_question_3",
+            context: "th_fake_context_3",
+            answer: "yes",
+            supports: ["th_fake_fact_5", "th_fake_fact_6", "th_fake_fact_7"]
+        },
+    ];
+
+    const MI_EXAMPLES = [
+        {
+            question: "mi_fake_question_1",
+            context: "mi_fake_context_1",
+            answer: "yes",
+            supports: ["mi_fake_fact_1", "mi_fake_fact_2"]
+        },
+        {
+            question: "mi_fake_question_2",
+            context: "mi_fake_context_2",
+            answer: "yes",
+            supports: ["mi_fake_fact_3", "mi_fake_fact_4"]
+        },
+        {
+            question: "mi_fake_question_3",
+            context: "mi_fake_context_3",
+            answer: "yes",
+            supports: ["mi_fake_fact_5", "mi_fake_fact_6", "mi_fake_fact_7"]
+        },
+    ];
+
     String.prototype.hashCode = function() {
         let hash = 0, i, chr;
         if (this.length === 0) return hash;
@@ -90,8 +153,8 @@
     window.socket = io({ autoConnect: false })
 
     $(window).init(function() {
-        renderQuestionOptions();
-        updateExampleContext();
+        renderQuestionOptions(getLanguage());
+        updateExampleContext(getLanguage());
 
         // register socket event
         window.socket.on('update_status', function(response) {
@@ -136,17 +199,20 @@
     });
 
     $('#my-input-btn').click(toggleMyInput);
-
     $('#example-btn').click(toggleExampleInput);
-
     $('#precomputed-btn').click(togglePrecomputed);
+
+    $('#english-btn').click(toggleEnglish);
+    $('#malay-btn').click(toggleMalay);
+    $('#thai-btn').click(toggleThai);
+    $('#maori-btn').click(toggleMaori);
 
     $('#example-question-select').change(updateExampleContext);
 
     $('.predict-btn').click(predictAnswer);
 
     function togglePrecomputed() {
-        $('#precomputed-btn').addClass('btn-primary').removeClass('btn-outline-secondary');
+        $('#precomputed-btn').addClass('btn-primary').removeClass('btn-outline-secondary').blur();
         $('#my-input-btn').addClass('btn-outline-secondary').removeClass('btn-primary');
         $('#example-btn').addClass('btn-outline-secondary').removeClass('btn-primary');
         $('#my-question').addClass('d-none');
@@ -157,7 +223,7 @@
     }
 
     function toggleMyInput() {
-        $('#my-input-btn').addClass('btn-primary').removeClass('btn-outline-secondary');
+        $('#my-input-btn').addClass('btn-primary').removeClass('btn-outline-secondary').blur();
         $('#example-btn').addClass('btn-outline-secondary').removeClass('btn-primary');
         $('#precomputed-btn').addClass('btn-outline-secondary').removeClass('btn-primary');
         $('#my-question').removeClass('d-none');
@@ -172,7 +238,7 @@
 
     function toggleExampleInput() {
         $('#my-input-btn').addClass('btn-outline-secondary').removeClass('btn-primary');
-        $('#example-btn').addClass('btn-primary').removeClass('btn-outline-secondary');
+        $('#example-btn').addClass('btn-primary').removeClass('btn-outline-secondary').blur();
         $('#precomputed-btn').addClass('btn-outline-secondary').removeClass('btn-primary');
         $('#my-question').addClass('d-none');
         $('#example-question').removeClass('d-none');
@@ -181,15 +247,69 @@
         setPredictionProgressBarDescription("Ready to go");
     }
 
+    function toggleEnglish() {
+        $('#english-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
+        $('#malay-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        renderQuestionOptions("EN");
+        updateExampleContext();
+        setPredictionProgressBarDescription("Ready to go");
+    }
+
+    function toggleMalay() {
+        $('#english-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#malay-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
+        $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        renderQuestionOptions("MR");
+        updateExampleContext();
+        setPredictionProgressBarDescription("Ready to go");
+    }
+
+    function toggleThai() {
+        $('#english-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#malay-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#thai-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
+        $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        renderQuestionOptions("TH");
+        updateExampleContext();
+        setPredictionProgressBarDescription("Ready to go");
+    }
+
+    function toggleMaori() {
+        $('#english-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#malay-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
+        $('#maori-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
+        renderQuestionOptions("MI");
+        updateExampleContext();
+        setPredictionProgressBarDescription("Ready to go");
+    }
+
     function getInputType() {
         if ($('#my-input-btn').hasClass('btn-primary') && $('#example-btn').hasClass('btn-outline-secondary') && $('#precomputed-btn').hasClass('btn-outline-secondary')) {
-            return 'MY_INPUT'
+            return 'MY_INPUT';
         } else if ($('#my-input-btn').hasClass('btn-outline-secondary') && $('#example-btn').hasClass('btn-primary') && $('#precomputed-btn').hasClass('btn-outline-secondary')) {
-            return 'EXAMPLE'
+            return 'EXAMPLE';
         } else if ($('#my-input-btn').hasClass('btn-outline-secondary') && $('#example-btn').hasClass('btn-outline-secondary') && $('#precomputed-btn').hasClass('btn-primary')) {
-            return 'PRECOMPUTED'
+            return 'PRECOMPUTED';
         } else {
-            return 'ERROR'
+            return 'ERROR';
+        }
+    }
+
+    function getLanguage() {
+        if ($('#english-btn').hasClass('btn-success')) {
+            return "EN";
+        } else if ($('#malay-btn').hasClass('btn-success')) {
+            return "MR"
+        } else if ($('#thai-btn').hasClass('btn-success')) {
+            return "MR"
+        } else if ($('#maori-btn').hasClass('btn-success')) {
+            return "MR"
+        } else {
+            return "ERROR";
         }
     }
 
@@ -202,7 +322,9 @@
 
         let selectedId = getSelectedExampleId();
 
-        $('#context-textarea').val(EXAMPLES[selectedId].context);
+        const current_examples = getExample(getLanguage());
+
+        $('#context-textarea').val(current_examples[selectedId].context);
     }
 
     function getQuestionOptionHtml(QuestionId, Question) {
@@ -210,10 +332,28 @@
         return questionOption;
     }
 
-    function renderQuestionOptions() {
+    function getExample(language) {
+        switch (language) {
+            case 'EN':
+                return EN_EXAMPLES;
+            case 'MR':
+                return MR_EXAMPLES;
+            case 'TH':
+                return TH_EXAMPLES;
+            case 'MI':
+                return MI_EXAMPLES;
+            default:
+                return EN_EXAMPLES;
+        }
+    }
+
+    function renderQuestionOptions(language) {
         let output = '';
-        for (let i = 0; i < EXAMPLES.length; i++) {
-            output += getQuestionOptionHtml(i, EXAMPLES[i].question)
+
+        const current_examples = getExample(language);
+
+        for (let i = 0; i < current_examples.length; i++) {
+            output += getQuestionOptionHtml(i, current_examples[i].question)
         }
         $('#example-question-select').html(output);
     }
@@ -285,9 +425,10 @@
 
     function dataVerfiy(value) {
         let context = $('#context-textarea').val();
-        let question = $('#my-question-input').val();
+        let input_question = $('#my-question-input').val();
+        let select_question = $('#example-question-select').val();
 
-        if (context == "" || question == "") {
+        if (context == "" || (input_question == "" && select_question == "")) {
             return false;
         }
 
@@ -316,7 +457,9 @@
             // render example answer
             let selectedId = getSelectedExampleId();
 
-            let result = { answer: EXAMPLES[selectedId].answer, supports: EXAMPLES[selectedId].supports };
+            const current_examples = getExample(getLanguage());
+
+            let result = { answer: current_examples[selectedId].answer, supports: current_examples[selectedId].supports };
             renderResult(result);
 
             let endTime = Date.now();
