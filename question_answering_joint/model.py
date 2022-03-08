@@ -126,9 +126,7 @@ class Broker(object):
 
     def passage_retrieval(self, language, context, question, result):
         context_segments = context.split('\n\n')
-        print(context_segments)
         ranked_result = self.tf_idf_proxy.rank(context_segments, question, language)
-        print(ranked_result)
         result["passages"] = [ranked_result[0]]
 
     def question_answering(self, language, context, question, result):
@@ -138,8 +136,15 @@ class Broker(object):
 if __name__ == "__main__":
     broker = Broker()
 
-    context = "This is New York City\n\nMy name is Iron Man\n\nWakanda Forever"
-    question = "what is your name?"
+    test = {
+        "question": "What is your name?",
+        "context": "This is New York City\n\nMy name is Iron Man\n\nI love Apple",
+        "passages": ["My name is Iron Man"],
+        "answer": "Iron Man"
+    }
+
+    context = test['context']
+    question = test['question']
     result = {}
 
     broker.passage_retrieval('EN', context, question, result)

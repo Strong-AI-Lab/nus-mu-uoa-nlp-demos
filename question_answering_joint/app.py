@@ -51,7 +51,6 @@ def index():
 @socketio.on('predict')
 def predict_request(request):
     data = json.loads(request['data'])
-    question_id = data['id']
     question = data['question']
     context = data['context']
     language = data['language']

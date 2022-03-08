@@ -352,7 +352,7 @@
     function dataVerfiy(value) {
         let context = $('#context-textarea').val();
         let input_question = $('#my-question-input').val();
-        let select_question = $('#example-question-select').val();
+        let select_question = $('#example-question-select').find(":selected").val();
 
         if (context == "" || (input_question == "" && select_question == "")) {
             return false;
@@ -408,13 +408,15 @@
             setPredictionProgressBarDescription('Done!  Time taken: ' + timeTaken.toFixed(4) + 's');
             turnOffTab(false);
         } else if (inputType == 'MY_INPUT' || inputType == 'EXAMPLE') {
-            let id = 'my_input';
             let context = $('#context-textarea').val();
-            let question = $('#my-question-input').val();
+
+            let input_question = $('#my-question-input').val();
+            let select_question = $('#example-question-select').find(":selected").text();
+            let question = inputType == 'MY_INPUT' ? input_question : select_question;
+
             let language = getLanguage();
 
             let data = {
-                "id": id,
                 "question": question,
                 "context": context,
                 "language": language,
