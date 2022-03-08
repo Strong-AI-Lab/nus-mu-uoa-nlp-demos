@@ -38,9 +38,9 @@
             } else if (response.cur_step == 2) {
                 // console.log('current step: ' + response.cur_step);
             } else if (response.cur_step == 3) {
-                // console.log('current step: ' + response.cur_step);
+                renderResult(response.result);
             } else if (response.cur_step == 4) {
-                // console.log('current step: ' + response.cur_step);
+                renderResult(response.result);
             }
 
             if (response.completed == 1) {
@@ -53,10 +53,9 @@
                 if (response.cur_step == response.total_step) {
                     progressBarMsg = 'Done!  Time taken: ' + timeTaken.toFixed(4) + 's';
                     progressBarStatus = 'SUCCESS';
-                    result = { answer: response.result['answer'], supports: response.result['supports'] };
                 }
 
-                renderResult(result);
+                renderResult(response.result);
                 updateProgressBarTo(100);
                 predictionProgressAnimationStop(progressBarStatus);
                 setPredictionProgressBarDescription(progressBarMsg);
@@ -120,8 +119,12 @@
         $('#malay-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
-        renderQuestionOptions("EN");
-        updateExampleContext();
+        if (getInputType() != "MY_INPUT") {
+            renderQuestionOptions("EN");
+            updateExampleContext();
+        } else {
+            toggleMyInput();
+        }
         setPredictionProgressBarDescription("Ready to go");
     }
 
@@ -130,8 +133,12 @@
         $('#malay-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
         $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
-        renderQuestionOptions("MR");
-        updateExampleContext();
+        if (getInputType() != "MY_INPUT") {
+            renderQuestionOptions("MR");
+            updateExampleContext();
+        } else {
+            toggleMyInput();
+        }
         setPredictionProgressBarDescription("Ready to go");
     }
 
@@ -140,8 +147,12 @@
         $('#malay-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#thai-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
         $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
-        renderQuestionOptions("TH");
-        updateExampleContext();
+        if (getInputType() != "MY_INPUT") {
+            renderQuestionOptions("TH");
+            updateExampleContext();
+        } else {
+            toggleMyInput();
+        }
         setPredictionProgressBarDescription("Ready to go");
     }
 
@@ -150,8 +161,13 @@
         $('#malay-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#maori-btn').addClass('btn-success').removeClass('btn-outline-secondary').blur();
-        renderQuestionOptions("MI");
-        updateExampleContext();
+        if (getInputType() != "MY_INPUT") {
+            renderQuestionOptions("MI");
+            updateExampleContext();
+        } else {
+            toggleMyInput();
+        }
+        
         setPredictionProgressBarDescription("Ready to go");
     }
 
@@ -261,18 +277,22 @@
     }
 
     function renderResult(result) {
+        if (result == null) {
+            return;
+        }
+
         $("#answer-section").empty();
 
         let output = '';
 
         // Answer card
-        let answer = { CardTitle: 'Answer', CardContent: "No answer", CardType: "answer"};
         if (result.answer) {
+            let answer = { CardTitle: 'Answer', CardContent: "No answer", CardType: "answer"};
             answer.CardContent = result.answer;
+            let answerCard = getCardHtml(answer);
+            output += answerCard;
         }
-        let answerCard = getCardHtml(answer);
-        output += answerCard;
-
+        
         // Supports card
         if (result.supports) {
             for (let i = 0; i < result.supports.length; i++) {
@@ -320,6 +340,12 @@
         $('#my-input-btn').prop('disabled', value);
         $('#example-btn').prop('disabled', value);
         $('#precomputed-btn').prop('disabled', value);
+
+        $('#english-btn').prop('disabled', value);
+        $('#malay-btn').prop('disabled', value);
+        $('#thai-btn').prop('disabled', value);
+        $('#maori-btn').prop('disabled', value);
+
         $(".predict-btn").prop('disabled', value);
     }
 
@@ -361,6 +387,7 @@
             return;
         }
 
+        renderResult();
         predictionProgressAnimationStart();
         setPredictionProgressBarDescription('Prediction in progress ...');
 
