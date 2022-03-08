@@ -12,6 +12,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 nltk.download('punkt')
 nltk.download('wordnet')
+nltk.download('omw-1.4')
 nltk.download('stopwords')
 
 class TFIDF_proxy(object):
