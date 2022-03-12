@@ -134,7 +134,7 @@
         $('#thai-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         $('#maori-btn').addClass('btn-outline-secondary').removeClass('btn-success');
         if (getInputType() != "MY_INPUT") {
-            renderQuestionOptions("MR");
+            renderQuestionOptions("MS");
             updateExampleContext();
         } else {
             toggleMyInput();
@@ -187,7 +187,7 @@
         if ($('#english-btn').hasClass('btn-success')) {
             return "EN";
         } else if ($('#malay-btn').hasClass('btn-success')) {
-            return "MR"
+            return "MS"
         } else if ($('#thai-btn').hasClass('btn-success')) {
             return "TH"
         } else if ($('#maori-btn').hasClass('btn-success')) {
@@ -220,7 +220,7 @@
         switch (language) {
             case 'EN':
                 return loadJsonFile("./static/data/englishExample.json");
-            case 'MR':
+            case 'MS':
                 return loadJsonFile("./static/data/malayExample.json");
             case 'TH':
                 return loadJsonFile("./static/data/thaiExample.json");
