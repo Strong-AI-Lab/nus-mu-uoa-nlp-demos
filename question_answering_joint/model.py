@@ -1,14 +1,19 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+# -*- coding: utf-8 -*-
+# Author: Mingzhe Du (mingzhe@nus.edu.sg)
+# Date: 2022-03-12
 
 import nltk
 import json
+import torch
 import numpy as np
 from string import punctuation
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize  
 from sklearn.feature_extraction.text import TfidfVectorizer
+
+from transformers.pipelines import pipeline
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 
 nltk.download('punkt')
 nltk.download('wordnet')
@@ -56,16 +61,16 @@ class QAProxy(object):
     def __init__(self):
         self.model_map = {
             "EN": {
-                "model_name": "twmkn9/bert-base-uncased-squad2",
-                "tokenizer_name": "twmkn9/bert-base-uncased-squad2"
+                "model_name": "zhufy/squad-en-bert-base",
+                "tokenizer_name": "zhufy/squad-en-bert-base"
             },
             "MS": {
-                "model_name": "twmkn9/bert-base-uncased-squad2",
-                "tokenizer_name": "twmkn9/bert-base-uncased-squad2"
+                "model_name": "zhufy/squad-ms-bert-base",
+                "tokenizer_name": "zhufy/squad-ms-bert-base"
             },
             "TH": {
-                "model_name": "twmkn9/bert-base-uncased-squad2",
-                "tokenizer_name": "twmkn9/bert-base-uncased-squad2"
+                "model_name": "zhufy/xquad-th-mbert-base",
+                "tokenizer_name": "zhufy/xquad-th-mbert-base"
             },
             "MI": {
                 "model_name": "twmkn9/bert-base-uncased-squad2",
@@ -89,32 +94,41 @@ class QAProxy(object):
         else:
             return "Not supported Language"
 
-        input_text = "[CLS] " + question + " [SEP] " + passage + " [SEP]"
+        # old-school way
+        # input_text = "[CLS] " + question + " [SEP] " + passage + " [SEP]"
 
-        if len(input_text) >= 512:
-            return "passage exceeds 512 tokens"
+        # if len(input_text) >= 512:
+        #     return "passage exceeds 512 tokens"
 
-        input_ids = tokenizer.encode(input_text, add_special_tokens=False)
+        # input_ids = tokenizer.encode(input_text, add_special_tokens=False)
 
-        token_type_ids = [0 if i <= input_ids.index(102) else 1 for i in range(len(input_ids))]
-        start_scores, end_scores = model(torch.tensor([input_ids]), 
-                                         token_type_ids=torch.tensor([token_type_ids]), 
-                                         return_dict=False)
-        all_tokens = tokenizer.convert_ids_to_tokens(input_ids)
+        # token_type_ids = [0 if i <= input_ids.index(102) else 1 for i in range(len(input_ids))]
+        # start_scores, end_scores = model(torch.tensor([input_ids]), 
+        #                                  token_type_ids=torch.tensor([token_type_ids]), 
+        #                                  return_dict=False)
+        # all_tokens = tokenizer.convert_ids_to_tokens(input_ids)
 
-        answer_start = torch.argmax(start_scores)
-        answer_end = torch.argmax(end_scores)
-        answer = all_tokens[answer_start]
+        # answer_start = torch.argmax(start_scores)
+        # answer_end = torch.argmax(end_scores)
+        # answer = all_tokens[answer_start]
 
-        for i in range(answer_start + 1, answer_end + 1):
-            # If it's a subword token, then recombine it with the previous token.
-            if all_tokens[i][0:2] == '##':
-                answer += all_tokens[i][2:]
-            # Otherwise, add a space then the token.
-            else:
-                answer += ' ' + all_tokens[i]
+        # for i in range(answer_start + 1, answer_end + 1):
+        #     # If it's a subword token, then recombine it with the previous token.
+        #     if all_tokens[i][0:2] == '##':
+        #         answer += all_tokens[i][2:]
+        #     # Otherwise, add a space then the token.
+        #     else:
+        #         answer += ' ' + all_tokens[i]
 
-        return answer
+        # return answer
+
+        # New wave
+        nlp_model = pipeline("question-answering", model=model, tokenizer=tokenizer)
+        inputs = {"question": question, "context":passage }
+        output = nlp_model(inputs)
+
+        return output["answer"]
+
 
 class Broker(object):
     def __init__(self):
@@ -137,10 +151,14 @@ if __name__ == "__main__":
     broker = Broker()
 
     test = {
-        "question": "What is your name?",
-        "context": "This is New York City\n\nMy name is Iron Man\n\nI love Apple",
-        "passages": ["My name is Iron Man"],
-        "answer": "Iron Man"
+        "question": "ดินดอนสามเหลี่ยมในเนเธอร์แลนด์มีชื่อว่าอะไร?",
+        "context": """ดินดอนสามเหลี่ยม ไรน์-เมิส ซึ่งเป็นภูมิภาคทางธรรมชาติที่สำคัญของเนเธอร์แลนด์เริ่มต้น
+               ใกล้มิลลิงเงิน อาน เดอ เรน ใกล้ชายแดนเนเธอร์แลนด์ติดกับเยอรมัน 
+               โดยมีสาขาของไรน์ไหลเข้าสู่แม่น้ำวาลและเนเดอร์เรน เนื่องจากน้ำส่วนใหญ่จากแม่น้ำไรน์
+               คำว่า ดินดอนสามเหลี่ยมไรน์ ซึ่งสั้นกว่าจึงเป็นคำที่ใช้เรียกกันทั่วไป อย่างไรก็ดี 
+               ชื่อนี้ยังใช้เรียกดินดอนสามเหลี่ยมบริเวณแม่น้ำซึ่งแม่น้ำไรน์ไหลเข้าสู่ทะเลสาบคอนสแตนซ์อีกด้วย
+               ดังนั้นการเรียกดินดอนสามเหลี่ยมซึ่งใหญ่กว่าว่าไรน์-เมิส หรือแม้กระทั่งดินแดนสามเหลี่ยมไรน์
+               -เมิส-สเกลต์จึงชัดเจนกว่า เนื่องจากแม่น้ำสเกลต์สิ้นสุดที่ดินดอนสามเหลี่ยมเดียวกัน"""
     }
 
     context = test['context']
@@ -148,4 +166,6 @@ if __name__ == "__main__":
     result = {}
 
     broker.passage_retrieval('EN', context, question, result)
+    broker.question_answering('TH', context, question, result)
+
     print(result)
