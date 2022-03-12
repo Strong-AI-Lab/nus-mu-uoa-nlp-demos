@@ -19,14 +19,14 @@ from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
 from nltk import tokenize
 
-from model import QAProxy
+from model import Broker
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, async_mode='threading')
 
-# qa proxy
-qa_proxy = QAProxy()
+# broker
+broker = Broker()
 
 def int_with_default(input, default=0):
     try:
@@ -51,9 +51,9 @@ def index():
 @socketio.on('predict')
 def predict_request(request):
     data = json.loads(request['data'])
-    question_id = data['id']
     question = data['question']
     context = data['context']
+    language = data['language']
     result = {}
     completed = 0
     total_step = 4
@@ -61,32 +61,29 @@ def predict_request(request):
     try:
         status = '0/3 - Converting data for prediction model...'
         emit('update_status', {'status': status, 'cur_step': 0, 'total_step': total_step, 'completed': completed, 'result': result})
-        
-        time.sleep(1)
+        time.sleep(2)
 
         status = '1/3 - Document retrieval...'
         emit('update_status', {'status': status, 'cur_step': 1, 'total_step': total_step, 'completed': completed, 'result': result})
-
-        time.sleep(1)
-        result["document_retrieval"] = qa_proxy.document_retrieval("en", question)
+        broker.document_retrieval(language, context, question, result)
+        time.sleep(2)
 
         status = '2/3 - Passage retrieval...'
         emit('update_status', {'status': status, 'cur_step': 2, 'total_step': total_step, 'completed': completed, 'result': result})
-
-        time.sleep(1)
-        result["passage_retrieval"] = qa_proxy.passage_retrieval("en", context, question)
+        broker.passage_retrieval(language, context, question, result)
+        time.sleep(2)
 
         status = '3/3 - Question Answering...'
         emit('update_status', {'status': status, 'cur_step': 3, 'total_step': total_step, 'completed': completed, 'result': result})
-        
+        broker.question_answering(language, context, question, result)
         time.sleep(2)
-        result["answer"] = qa_proxy.question_answering("en", context, question)
 
         completed = 1
         status = 'Done!'
         emit('update_status', {'status': status, 'cur_step': 4, 'total_step': total_step, 'completed': completed, 'result': result})
-    except:
-        status = 'Error occurred!'
+    except Exception as e:
+        print(e)
+        status = 'Error occurred'
         emit('update_status', {'status': status, 'cur_step': -1, 'total_step': total_step, 'completed': 1, 'result': result})
 
 @app.route('/submit', methods=['POST'])
@@ -103,7 +100,7 @@ def submit():
 
     return jsonify(answer)
 
-
+# Main loop
 if __name__ == "__main__":
     port_num = 3000
     while port_num < 0 or port_num > 65535 or is_port_occupied(port_num):
